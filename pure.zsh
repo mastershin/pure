@@ -543,10 +543,30 @@ prompt_pure_state_setup() {
 	fi
 
 	# show username@host if logged in through SSH
-	[[ -n $ssh_connection ]] && username='%F{242}%n@%m%f'
+	# [[ -n $ssh_connection ]] && username='%F{242}%n@%m%f'
+
+
+	if [ -f /etc/vc/prompt_message ]; then
+	  msg=" "$(</etc/vc/prompt_message)" "
+	else
+	  msg=" We're Successful "
+	fi
+	if [[ $USERNAME == 'root' ]]; then
+	  msg=' *** ROOT MODE *** '
+	fi
+
+	# [[ -n $ssh_connection ]] && username='%F{242}%n%F{green}'$msg'%F{red}%m%f'
+	if [[ -n $ssh_connection ]]; then
+          #username='%F{242}%n%F{green}'$msg'%F{red}%m [ssh '$ssh_connection']%f' # too long
+          #username='%F{242}%n%F{green}'$msg'%F{red}%m [ssh/'${ssh_connection%% *}']%f' # display ip only
+          username='%F{242}%n%F{green}'$msg'%F{red}%m [ssh]%f'
+        else
+          username='%F{242}%n%F{green}'$msg'%F{gray}[%m]%f'
+        fi
 
 	# show username@host if root, with username in white
-	[[ $UID -eq 0 ]] && username='%F{white}%n%f%F{242}@%m%f'
+	# [[ $UID -eq 0 ]] && username='%F{white}%n%f%F{242}@%m%f'
+	[[ $UID -eq 0 ]] && username='%F{white}%n%f%F{242}%F{magenta}'$msg'%F{red}%m%f'
 
 	typeset -gA prompt_pure_state
 	prompt_pure_state=(
@@ -598,7 +618,7 @@ prompt_pure_setup() {
 	PROMPT='%(12V.%F{242}%12v%f .)'
 
 	# prompt turns red if the previous command didn't exit with 0
-	PROMPT+='%(?.%F{magenta}.%F{red})${prompt_pure_state[prompt]}%f '
+	PROMPT+='%(?.%F{magenta}.%F{red}$?)${prompt_pure_state[prompt]}%f '
 
 	# Store prompt expansion symbols for in-place expansion via (%). For
 	# some reason it does not work without storing them in a variable first.
